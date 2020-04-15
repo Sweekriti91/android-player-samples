@@ -6,4 +6,6 @@ dependencies {
     implementation "androidx.vectordrawable:vectordrawable:${ANDROIDX_VECTOR_DRAWABLE}"
     implementation "androidx.mediarouter:mediarouter:${ANDROIDX_MEDIA_ROUTER}"
     implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation "com.brightcove.player:exoplayer2:${anpVersion}"
+    implementation "androidx.media:media:${ANDROIDX_MEDIA}"
 }

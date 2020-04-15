@@ -16,6 +16,9 @@ import com.brightcove.player.view.BrightcovePlayer;
 public class MainActivity extends BrightcovePlayer {
 
     private final String TAG = this.getClass().getSimpleName();
+    static String policyKEY = "BCpkADawqM3zXLtsEM0nAyA_3o3TmZnG6bZTXFmjZ8X_rmFMqlpB78l0aiRELs7MWACf4mYN92qMOLMxfZN6Xr3cQ_0R3G2qBiho3X3Nc2yTv7DH4APQ-EimMJQ3crX0zc0mJMy9CtSqkmli";
+    static String accountID = "3303963094001";
+    String videoId = "4283173439001";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,10 +30,10 @@ public class MainActivity extends BrightcovePlayer {
         brightcoveVideoView = (BrightcoveExoPlayerVideoView) findViewById(R.id.brightcove_video_view);
         super.onCreate(savedInstanceState);
 
-        Catalog catalog = new Catalog(brightcoveVideoView.getEventEmitter(), "3303963094001",
-                                      "BCpkADawqM3zXLtsEM0nAyA_3o3TmZnG6bZTXFmjZ8X_rmFMqlpB78l0aiRELs7MWACf4mYN92qMOLMxfZN6Xr3cQ_0R3G2qBiho3X3Nc2yTv7DH4APQ-EimMJQ3crX0zc0mJMy9CtSqkmli");
+        Catalog catalog = new Catalog(brightcoveVideoView.getEventEmitter(), accountID,
+                                      policyKEY);
 
-        catalog.findVideoByID("4283173439001", new VideoListener() {
+        catalog.findVideoByID(videoId, new VideoListener() {
             @Override
             public void onVideo(Video video) {
                 brightcoveVideoView.add(video);

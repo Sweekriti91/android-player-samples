@@ -19,6 +19,7 @@ import com.brightcove.player.event.EventEmitter;
 import com.brightcove.player.event.EventListener;
 import com.brightcove.player.event.EventType;
 import com.brightcove.player.model.Video;
+import com.brightcove.player.view.BrightcoveExoPlayerVideoView;
 import com.brightcove.player.view.BrightcoveVideoView;
 
 public class VideoPlayerActivity extends BrightcovePlayerActivity {
@@ -28,18 +29,22 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
     public static final String PROPS_LONG_DESCRIPTION = "long_description";
     public static final String PROPS_SHORT_DESCRIPTION = "description";
 
+    static String policyKEY = "BCpkADawqM3zXLtsEM0nAyA_3o3TmZnG6bZTXFmjZ8X_rmFMqlpB78l0aiRELs7MWACf4mYN92qMOLMxfZN6Xr3cQ_0R3G2qBiho3X3Nc2yTv7DH4APQ-EimMJQ3crX0zc0mJMy9CtSqkmli";
+    static String accountID = "3303963094001";
+    String videoId = "4283173439001";
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 
         // Perform the internal wiring to be able to make use of the BrightcovePlayerFragment.
-        baseVideoView = (BrightcoveVideoView) findViewById(R.id.brightcove_video_view);
+        baseVideoView = (BrightcoveExoPlayerVideoView) findViewById(R.id.brightcove_video_view);
         ViewCompat.setTransitionName(baseVideoView, getString(R.string.transition_image));
 
         String videoId = getIntent().getStringExtra(VideoPlayerActivity.INTENT_EXTRA_VIDEO_ID);
-        Catalog catalog = new Catalog(baseVideoView.getEventEmitter(), getString(R.string.account), getString(R.string.policy));
-        catalog.findVideoByID(videoId, new VideoListener() {
+        Catalog catalog = new Catalog(baseVideoView.getEventEmitter(), accountID, policyKEY);
+        catalog.findVideoByID("4283173439001", new VideoListener() {
             @Override
             public void onVideo(Video video) {
 
