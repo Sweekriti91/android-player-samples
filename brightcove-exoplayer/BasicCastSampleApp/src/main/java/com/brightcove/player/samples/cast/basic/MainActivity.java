@@ -20,9 +20,7 @@ import com.brightcove.player.model.Video;
 
 public class MainActivity extends AppCompatActivity implements VideoListAdapter.ItemClickListener {
 
-    static String policyKEY = "BCpkADawqM3YRyTQ4hZzmqTk-Oegl3lHc_iLPz29j-aHgdZy0hLaKVj-TlITBvYppMXWpz4mGh60AgWogCIF42vzi1lkj9vgAjYNjAwjd8xeW-JwTb1yI4XPq0mGXaXx4KY-Nu7MwFX0QsQi";
-    static String accountID = "6056665239001";
-    static String videoId = "6093269901001";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

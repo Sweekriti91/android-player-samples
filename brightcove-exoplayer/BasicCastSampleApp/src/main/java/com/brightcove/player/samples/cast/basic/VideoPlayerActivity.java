@@ -29,9 +29,9 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
     public static final String PROPS_LONG_DESCRIPTION = "long_description";
     public static final String PROPS_SHORT_DESCRIPTION = "description";
 
-    static String policyKEY = "BCpkADawqM3zXLtsEM0nAyA_3o3TmZnG6bZTXFmjZ8X_rmFMqlpB78l0aiRELs7MWACf4mYN92qMOLMxfZN6Xr3cQ_0R3G2qBiho3X3Nc2yTv7DH4APQ-EimMJQ3crX0zc0mJMy9CtSqkmli";
-    static String accountID = "3303963094001";
-    String videoId = "4283173439001";
+    static String policyKEY = "BCpkADawqM3YRyTQ4hZzmqTk-Oegl3lHc_iLPz29j-aHgdZy0hLaKVj-TlITBvYppMXWpz4mGh60AgWogCIF42vzi1lkj9vgAjYNjAwjd8xeW-JwTb1yI4XPq0mGXaXx4KY-Nu7MwFX0QsQi";
+    static String accountID = "6056665239001";
+    static String videoId = "6093269901001";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,7 +44,7 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
 
         String videoId = getIntent().getStringExtra(VideoPlayerActivity.INTENT_EXTRA_VIDEO_ID);
         Catalog catalog = new Catalog(baseVideoView.getEventEmitter(), accountID, policyKEY);
-        catalog.findVideoByID("4283173439001", new VideoListener() {
+        catalog.findVideoByID("6093269901001", new VideoListener() {
             @Override
             public void onVideo(Video video) {
 
