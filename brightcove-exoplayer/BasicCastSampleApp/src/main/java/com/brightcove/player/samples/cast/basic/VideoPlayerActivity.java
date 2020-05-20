@@ -19,6 +19,7 @@ import com.brightcove.player.event.EventEmitter;
 import com.brightcove.player.event.EventListener;
 import com.brightcove.player.event.EventType;
 import com.brightcove.player.model.Video;
+import com.brightcove.player.view.BrightcoveExoPlayerVideoView;
 import com.brightcove.player.view.BrightcoveVideoView;
 
 public class VideoPlayerActivity extends BrightcovePlayerActivity {
@@ -34,7 +35,8 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
         setContentView(R.layout.activity_player);
 
         // Perform the internal wiring to be able to make use of the BrightcovePlayerFragment.
-        baseVideoView = (BrightcoveVideoView) findViewById(R.id.brightcove_video_view);
+//        baseVideoView = (BrightcoveVideoView) findViewById(R.id.brightcove_video_view);
+        baseVideoView = (BrightcoveExoPlayerVideoView) findViewById(R.id.brightcove_video_view);
         ViewCompat.setTransitionName(baseVideoView, getString(R.string.transition_image));
 
         String videoId = getIntent().getStringExtra(VideoPlayerActivity.INTENT_EXTRA_VIDEO_ID);
