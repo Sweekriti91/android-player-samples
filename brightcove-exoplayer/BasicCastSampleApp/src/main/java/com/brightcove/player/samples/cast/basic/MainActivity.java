@@ -20,8 +20,6 @@ import com.brightcove.player.model.Video;
 
 public class MainActivity extends AppCompatActivity implements VideoListAdapter.ItemClickListener {
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
