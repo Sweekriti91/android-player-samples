@@ -7,10 +7,12 @@ import androidx.core.view.ViewCompat;
 import androidx.appcompat.app.ActionBar;
 import android.text.TextUtils;
 import android.view.Menu;
+import android.widget.MediaController;
 import android.widget.TextView;
 
 import com.brightcove.cast.GoogleCastComponent;
 import com.brightcove.cast.GoogleCastEventType;
+import com.brightcove.cast.util.CastMediaUtil;
 import com.brightcove.player.appcompat.BrightcovePlayerActivity;
 import com.brightcove.player.edge.Catalog;
 import com.brightcove.player.edge.VideoListener;
@@ -18,9 +20,12 @@ import com.brightcove.player.event.Event;
 import com.brightcove.player.event.EventEmitter;
 import com.brightcove.player.event.EventListener;
 import com.brightcove.player.event.EventType;
+import com.brightcove.player.model.DeliveryType;
+import com.brightcove.player.model.Source;
 import com.brightcove.player.model.Video;
 import com.brightcove.player.view.BrightcoveExoPlayerVideoView;
 import com.brightcove.player.view.BrightcoveVideoView;
+import com.google.android.gms.cast.MediaInfo;
 
 public class VideoPlayerActivity extends BrightcovePlayerActivity {
 
@@ -57,10 +62,17 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
                     longDesc.setText((String) descriptionObj);
                 }
 
+
                 baseVideoView.add(video);
+
+                setUpCast(video);
+
             }
         });
 
+
+    }
+    void setUpCast(Video video) {
         EventEmitter eventEmitter = baseVideoView.getEventEmitter();
 
         // Initialize the android_cast_plugin.
@@ -78,10 +90,25 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
             }
         });
 
+        Source source = findCastableSource(video);
+        
         GoogleCastComponent googleCastComponent = new GoogleCastComponent(eventEmitter, this);
-
+        MediaInfo mediaInfo = CastMediaUtil.toMediaInfo(video, source, null, null);
+        googleCastComponent.loadMediaInfo(mediaInfo);
         //You can check if there is a session available
         googleCastComponent.isSessionAvailable();
+    }
+    public static Source findCastableSource(Video video) {
+        if (!video.getSourceCollections().isEmpty()
+                && video.getSourceCollections().containsKey(DeliveryType.DASH)
+                && video.getSourceCollections().get(DeliveryType.DASH).getSources() != null) {
+            for (Source dashSource : video.getSourceCollections().get(DeliveryType.DASH).getSources()) {
+                if (dashSource.getUrl().contains("ac-3_avc1_ec-3_mp4a")) {
+                    return dashSource;
+                }
+            }
+        }
+        return null;
     }
 
     @Override
