@@ -99,14 +99,18 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
         googleCastComponent.isSessionAvailable();
     }
     public static Source findCastableSource(Video video) {
+        Source savedDashSource = null;
+
         if (!video.getSourceCollections().isEmpty()
                 && video.getSourceCollections().containsKey(DeliveryType.DASH)
                 && video.getSourceCollections().get(DeliveryType.DASH).getSources() != null) {
             for (Source dashSource : video.getSourceCollections().get(DeliveryType.DASH).getSources()) {
+                savedDashSource = dashSource;
                 if (dashSource.getUrl().contains("ac-3_avc1_ec-3_mp4a")) {
                     return dashSource;
                 }
             }
+            return savedDashSource;
         }
         return null;
     }
