@@ -2,21 +2,13 @@ package com.brightcove.player.samples.cast.basic;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.core.view.ViewCompat;
-import androidx.appcompat.app.ActionBar;
-import android.text.TextUtils;
 import android.view.Menu;
-import android.widget.MediaController;
-import android.widget.TextView;
 
 import com.brightcove.cast.GoogleCastComponent;
 import com.brightcove.cast.GoogleCastEventType;
 import com.brightcove.cast.util.CastMediaUtil;
 import com.brightcove.player.appcompat.BrightcovePlayerActivity;
 import com.brightcove.player.drm.BrightcoveMediaDrmCallback;
-import com.brightcove.player.edge.Catalog;
-import com.brightcove.player.edge.VideoListener;
 import com.brightcove.player.event.Event;
 import com.brightcove.player.event.EventEmitter;
 import com.brightcove.player.event.EventListener;
@@ -25,7 +17,6 @@ import com.brightcove.player.model.DeliveryType;
 import com.brightcove.player.model.Source;
 import com.brightcove.player.model.Video;
 import com.brightcove.player.view.BrightcoveExoPlayerVideoView;
-import com.brightcove.player.view.BrightcoveVideoView;
 import com.google.android.gms.cast.MediaInfo;
 
 import org.json.JSONException;
@@ -33,6 +24,10 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.core.view.ViewCompat;
 
 public class VideoPlayerActivity extends BrightcovePlayerActivity {
 
@@ -126,7 +121,7 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
             // add licenseUrl
             jsonObj.put("licenseUrl", "https://wv-keyos.licensekeyserver.com/");
 
-            Map<String, String> licenseHeaders = new HashMap<>();
+            JSONObject licenseHeaders = new JSONObject();
             licenseHeaders.put("customdata", videoKey);
             // add license headers map
             jsonObj.put("licenseKeyHeaders", licenseHeaders);
