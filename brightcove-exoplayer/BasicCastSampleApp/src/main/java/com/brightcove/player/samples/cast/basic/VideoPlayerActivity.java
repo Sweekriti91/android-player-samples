@@ -2,6 +2,7 @@ package com.brightcove.player.samples.cast.basic;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 
 import com.brightcove.cast.GoogleCastComponent;
@@ -18,10 +19,14 @@ import com.brightcove.player.model.Source;
 import com.brightcove.player.model.Video;
 import com.brightcove.player.view.BrightcoveExoPlayerVideoView;
 import com.google.android.gms.cast.MediaInfo;
+import com.google.android.gms.cast.framework.CastContext;
+import com.google.android.gms.cast.framework.CastSession;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,9 +40,21 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
 
     public static final String PROPS_LONG_DESCRIPTION = "long_description";
     public static final String PROPS_SHORT_DESCRIPTION = "description";
+    public static Map<String, String> CODEC_JSON_LIST;
+    static {
+        CODEC_JSON_LIST = new HashMap<>();
+        CODEC_JSON_LIST.put("mp4a.40.2", "{\"mimeType\": \"audio/mp4\", \"codecs\": \"mp4a.40.2\"}");
+        CODEC_JSON_LIST.put("ac-3", "{\"mimeType\": \"audio/mp4\", \"codecs\": \"ac-3\"}");
+        CODEC_JSON_LIST.put("mp4a.a5", "{\"mimeType\": \"audio/mp4\", \"codecs\": \"mp4a.a5\"}");
+        CODEC_JSON_LIST.put("mp4a.a6", "{\"mimeType\": \"audio/mp4\", \"codecs\": \"mp4a.a6\"}");
+        CODEC_JSON_LIST.put("ec-3", "{\"mimeType\": \"audio/mp4\", \"codecs\": \"ec-3\"}");
+        CODEC_JSON_LIST.put("mhm1.0x0D", "{\"mimeType\": \"audio/mp4\", \"codecs\": \"mhm1.0x0D\"}");
+    }
+    public static String AUDIO_SPEC_LIST = "audioSpecList";
+    public static String AMPAS_CUSTOM_CHANNEL = "urn:x-cast:bc.cast.theacademy";
 
-    public static String videoUrl = "https://ampas-advanced.akamaized.net//wmt:eyJhbGciOiJSUzI1NiIsImtpZCI6Ijg5NDlPU0NBUlNCUCIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTcyMzUyMDAsImlhdCI6MTU4MzE5MDc4MSwiaXNzIjoiQU1QQVMiLCJ3bWlkIjoiQUFBQUFBQUFBQUJCQkJCQkJCQkJCQkJCQkFBQUFBQkJCQkJBQUFBQUJCQkJCQUFBQUFCQkJCQkFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUJCQkJCQUFBQUFCQkJCQkJCQkJCQkJCQkJBQUFBQUJCQkJCQUFBQUFCQkJCQkFBQUFBQkJCQkJCQkJCQkFBQUFBQkJCQkJBQUFBQUFBQUFBQkJCQkJBQUFBQUJCQkJCQUFBQUFBQUFBQUJCQkJCQkJCQkJBQUFBQUJCQkJCQkJCQkJCQkJCQkFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCQkJCQkFBQUFBQUFBQUFBQUFBQUJCQkJCQkJCQkJBQUFBQUFBQUFBQUFBQUFBQUFBQUJCQkJCQkJCQkJCQkJCQkFBQUFBQkJCQkJBQUFBQUJCQkJCQUFBQUFCQkJCQkFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUJCQkJCQUFBQUFCQkJCQkJCQkJCQkJCQkJBQUFBQUJCQkJCQUFBQUFCQkJCQkFBQUFBQkJCQkJCQkJCQkFBQUFBQkJCQkJBQUFBQUFBQUFBQkJCQkJBQUFBQUJCQkJCQUFBQUFBQUFBQUJCQkJCQkJCQkJBQUFBQUJCQkJCQkJCQkJCQkJCQkFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCQkJCQkFBQUFBQUFBQUFBQUFBQUJCQkJCQkJCQkJBQUFBQUFBQUFBQUFBQUFBQUFBQUJCQkJCQkJCQkJCQkJCQkFBQUFBQkJCQkJBQUFBQUJCQkJCQUFBQUFCQkJCQkFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUJCQkJCQUFBQUFCQkJCQkJCQkJCQkJCQkJBQUFBQUJCQkJCQUFBQUFCQkJCQkFBQUFBQkJCQkJCQkJCQkFBQUFBQkJCQkJBQUFBQUFBQUFBQkJCQkJBQUFBQUJCQkJCQUFBQUFBQUFBQUJCQkJCQkJCQkJBQUFBQUJCQkJCQkJCQkJCQkJCQkFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCQkJCQkFBQUFBQUFBQUFBQUFBQUJCQkJCQkJCQkJBQUFBQUFBQUFBQUFBQUFBQUFBQUJCQkJCQkJCQkJCQkJCQkFBQUFBQkJCQkJBQUFBQUJCQkJCQUFBQUFCQkJCQkFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkJCQkJBQUFBQUJCQkJCQkJCQkJCQkJCQkFBQUFBQkJCQkJBQUFBQUJCQkJCQUFBQUFCQkJCQkJCQkJCQUFBQUFCQkJCQkFBQUFBQUFBQUFCQkJCQkFBQUFBQkJCQkJBQUFBQUFBQUFBQkJCQkJCQkJCQkFBQUFBQkJCQkJCQkJCQkJCQkJCQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUJCQkJCQUFBQUFBQUFBQUFBQUFBQkJCQkJCQkJCQkFBQUFBQUFBQUEiLCJ3bWlkZm10IjoiYWIiLCJ3bXZlciI6MX0.lnwT3A46vKOmpzMc4rsPSOWTioJ9_cydeBBJN8ZkMYE6mJ7il-N46IEmz_BWXgnofYUeOiHspTCclhwGNoklN9PuIu5GCJ0fSNiMnTM3sdddLUDnxmoUzanVvmWM06416JBJqN9I7mJGoF5arnoCtrnrCwK3fxQF4QaMrXmbDw2UDoe0LGqpuHtdHkzz5GELPAehlZAkENv6PSivEjZOP2_vumj7V0KGFAYJHjH8qktWtKxnEGtRE2UyRFPKSpBK421wx3C2BGn_q0uLN6mkc_QABcfAN8nV_BmwwiL9Zx4XXd6FVMRoeRHkTJKhHqNhZhi1vSxJeeDh-tDjvmxObA/20BP_BestPic_FordVsFerrari_W_DYN_V2R1_1080_2CH_dash/20BP_BestPic_FordVsFerrari_W_DYN_V2R1_1080_2CH-playlist.mpd";
-    public static String videoKey = "PEtleU9TQXV0aGVudGljYXRpb25YTUw+PERhdGE+PEdlbmVyYXRpb25UaW1lPjIwMjAtMDgtMDQgMjE6MjI6NDcuMzY1PC9HZW5lcmF0aW9uVGltZT48RXhwaXJhdGlvblRpbWU+MjAyMC0wOS0wMyAyMToyMjo0Ny4zNjU8L0V4cGlyYXRpb25UaW1lPjxVbmlxdWVJZD5kZWM0OGI4ZjkwODM0ZjExOWRiYjEzMmZiYTFhZDBlNTwvVW5pcXVlSWQ+PFJTQVB1YktleUlkPmYyNDhlZDQ1MjQ5M2M3NzA2NWMwMzBmYTlhZjk3YjZiPC9SU0FQdWJLZXlJZD48V2lkZXZpbmVQb2xpY3kgZmxfQ2FuUGxheT0idHJ1ZSIgZmxfQ2FuUGVyc2lzdD0iZmFsc2UiIC8+PFdpZGV2aW5lQ29udGVudEtleVNwZWMgVHJhY2tUeXBlPSJIRCI+PFNlY3VyaXR5TGV2ZWw+MTwvU2VjdXJpdHlMZXZlbD48L1dpZGV2aW5lQ29udGVudEtleVNwZWM+PEZhaXJQbGF5UG9saWN5IHBlcnNpc3RlbnQ9ImZhbHNlIiAvPjxMaWNlbnNlIHR5cGU9InNpbXBsZSIgLz48L0RhdGE+PFNpZ25hdHVyZT5xRTJVUWdJUHlZTmJuYzdnc2cyR1JzZWhzakpIaHNQQVdweEE0eExraHE0THhsdjdxR3BiNzIrZkRWWkR4b0NqbC84WWR3UXVmM0trOU5PUFgxdmFzU1lBZmtwYzFQd1RHdjhUVE5oZnVoOUZ6b1BJTnJqM0dFalNXQktRbHBuVFhpbStmdkk0MHM2MGEySEhKUmZrbmUwcEZrbnROckdrcDNFNkpPVTR6MUhlM2dPZkxhclJmYlFZaTlSc2ZabW93Z0tqTlJiczVBZmthVllMZGFuNVZCL2hCSlBnMittVE9XcGdDY1R1dnhpN2cvWkVSZmNaYlJFS0JnTm1SOFFHL0ljQ2IvOEQyS0hVK25KR0RMQk9oVjV0QXV0V3hHeGRZUjhRTzVzQnRDQkZsbmU4MWk1cmE4R1VCVVV4T0ZYUzZqVldLT0hEd3dqeFRzaWJKWU94NWc9PTwvU2lnbmF0dXJlPjwvS2V5T1NBdXRoZW50aWNhdGlvblhNTD4=";
+    public static String videoUrl = "https://ampas-advanced.akamaized.net/wmt:eyJhbGciOiJSUzI1NiIsImtpZCI6Ijg5NDlPU0NBUlNCUCIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTcyMzUyMDAsImlhdCI6MTU4MzE5MDc2MSwiaXNzIjoiQU1QQVMiLCJ3bWlkIjoiQkJCQkJBQUFBQUJCQkJCQkJCQkJBQUFBQUJCQkJCQUFBQUFBQUFBQUFBQUFBQUFBQUFCQkJCQkFBQUFBQUFBQUFBQUFBQUFBQUFBQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkFBQUFBQkJCQkJCQkJCQkJCQkJCQUFBQUFBQUFBQUFBQUFBQkJCQkJCQkJCQkFBQUFBQUFBQUFCQkJCQkJCQkJCQUFBQUFBQUFBQUJCQkJCQUFBQUFCQkJCQkFBQUFBQUFBQUFBQUFBQUJCQkJCQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkJCQkJCQkJCQkFBQUFBQkJCQkJCQkJCQkFBQUFBQkJCQkJBQUFBQUFBQUFBQkJCQkJCQkJCQkFBQUFBQkJCQkJBQUFBQUJCQkJCQkJCQkJBQUFBQUJCQkJCQUFBQUFBQUFBQUFBQUFBQUFBQUFCQkJCQkFBQUFBQUFBQUFBQUFBQUFBQUFBQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkFBQUFBQkJCQkJCQkJCQkJCQkJCQUFBQUFBQUFBQUFBQUFBQkJCQkJCQkJCQkFBQUFBQUFBQUFCQkJCQkJCQkJCQUFBQUFBQUFBQUJCQkJCQUFBQUFCQkJCQkFBQUFBQUFBQUFBQUFBQUJCQkJCQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkJCQkJCQkJCQkFBQUFBQkJCQkJCQkJCQkFBQUFBQkJCQkJBQUFBQUFBQUFBQkJCQkJCQkJCQkFBQUFBQkJCQkJBQUFBQUJCQkJCQkJCQkJBQUFBQUJCQkJCQUFBQUFBQUFBQUFBQUFBQUFBQUFCQkJCQkFBQUFBQUFBQUFBQUFBQUFBQUFBQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkFBQUFBQkJCQkJCQkJCQkJCQkJCQUFBQUFBQUFBQUFBQUFBQkJCQkJCQkJCQkFBQUFBQUFBQUFCQkJCQkJCQkJCQUFBQUFBQUFBQUJCQkJCQUFBQUFCQkJCQkFBQUFBQUFBQUFBQUFBQUJCQkJCQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQkJCQkJCQkJCQkFBQUFBQkJCQkJCQkJCQkFBQUFBQkJCQkJBQUFBQUFBQUFBQkJCQkJCQkJCQkFBQUFBQkJCQkJBQUFBQUJCQkJCQkJCQkJBQUFBQUJCQkJCQUFBQUFBQUFBQUFBQUFBQUFBQUFCQkJCQkFBQUFBQUFBQUFBQUFBQUFBQUFCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQUFBQUFCQkJCQkJCQkJCQkJCQkJBQUFBQUFBQUFBQUFBQUFCQkJCQkJCQkJCQUFBQUFBQUFBQUJCQkJCQkJCQkJBQUFBQUFBQUFBQkJCQkJBQUFBQUJCQkJCQUFBQUFBQUFBQUFBQUFBQkJCQkJBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFCQkJCQkJCQkJCQUFBQUFCQkJCQkJCQkJCQUFBQUFCQkJCQkFBQUFBQUFBQUFCQkJCQkJCQkJCQUFBQUEiLCJ3bWlkZm10IjoiYWIiLCJ3bXZlciI6MX0.AbOhh_dvEajzxLMeQ7m2uY-CXeOoUc9ykx3KB0wo1sOkhPqIwVfn8d7XfHZyOHNYajhYNP_OHMmAUC_n3Mcj2r6hjEPHEnz4qcf0cOZ_OrtiRZ0JC_6kB9BRjc9YgY9VzvZwGrzaqzjYCAUSTtTo5zeNYEr-4ZvaaABEUq9BMfU1h9mBQPMWaG_psvqfipsl7adUPrTKMnc3Vd9BhBMc1G8Z-fQF-mfbIsF5M2lgrhA4tz1lJZXCb9tS8_tnqP9XeTpPIBuNbt7ptvqLlBW6U_bzrnOUmyhWvSKTcqnzBVi8qrhLbH_E0QifWvzJEKFAjhH3Bx2v8nAN4XO4y2Vf7w/1080_51_Test_02_dash/1080_51_Test_02-ac-3_avc1_ec-3_mp4a-playlist.mpd";
+    public static String videoKey = "PEtleU9TQXV0aGVudGljYXRpb25YTUw+PERhdGE+PEdlbmVyYXRpb25UaW1lPjIwMjAtMDktMTYgMTk6MTU6MTguNDIyPC9HZW5lcmF0aW9uVGltZT48RXhwaXJhdGlvblRpbWU+MjAyMC0wOS0yMyAxOToxNToxOC40MjI8L0V4cGlyYXRpb25UaW1lPjxVbmlxdWVJZD41ZGI0MTFiMWQ0YjU0MTQ1ODkwMTc0NzE3ZjBmNjlmOTwvVW5pcXVlSWQ+PFJTQVB1YktleUlkPmYyNDhlZDQ1MjQ5M2M3NzA2NWMwMzBmYTlhZjk3YjZiPC9SU0FQdWJLZXlJZD48V2lkZXZpbmVQb2xpY3kgZmxfQ2FuUGxheT0idHJ1ZSIgZmxfQ2FuUGVyc2lzdD0iZmFsc2UiIC8+PFdpZGV2aW5lQ29udGVudEtleVNwZWMgVHJhY2tUeXBlPSJIRCI+PFNlY3VyaXR5TGV2ZWw+MTwvU2VjdXJpdHlMZXZlbD48L1dpZGV2aW5lQ29udGVudEtleVNwZWM+PEZhaXJQbGF5UG9saWN5IHBlcnNpc3RlbnQ9ImZhbHNlIiAvPjxMaWNlbnNlIHR5cGU9InNpbXBsZSIgLz48L0RhdGE+PFNpZ25hdHVyZT5JSE5nUGtqL3NTNDhvK014L1haTC9IQmNMb0FIYjY0QVpwZEo1NWx1dDgzOXFCUG9WRmwweUtBZzdjQ3Y0Q0puUFZXdGdLT1ZPZFUyV250VzQvYjIvSTVQSUVSa25UOEJKMzY2YXF6YXVBeVBsM1VqekFNV3VPUzJTcHR4eUF3L25RRUdhaFdSME5IYkFZdloyNHZmZHJDdVhoMnNJdGZzcmYrY0VlUGJneVNhcFcySW5GNUlSMnBIQ3B6S0JzdUNpQVByY1NCNzNMTUFtZFVSemdKd1M0ODVCZ3J1N0lZZVgzSi9WajVETzdLVDFQL1lYVkRIck5pdEVlSWRubFRZcGZmbGlFWGluVU5SRHJRZmpnOUZRRHFqY0h6cUZ5WEVOQzJuRDhzWDBhTnJ4NzUyMUVlQUc2QmdXeE9vdVFIajI2OXlNUnQzdUl3SElxa0JrdWM1cnc9PTwvU2lnbmF0dXJlPjwvS2V5T1NBdXRoZW50aWNhdGlvblhNTD4=";
 
 
     @Override
@@ -93,6 +110,7 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
 
     void setUpCast(Video video) throws JSONException {
         EventEmitter eventEmitter = baseVideoView.getEventEmitter();
+        GoogleCastComponent googleCastComponent = new GoogleCastComponent(eventEmitter, this);
 
         // Initialize the android_cast_plugin.
         String url = videoUrl;
@@ -100,7 +118,23 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
         eventEmitter.on(GoogleCastEventType.CAST_SESSION_STARTED, new EventListener() {
             @Override
             public void processEvent(Event event) {
-                // Connection Started
+                // listen for messages from the receiver
+                if (googleCastComponent.isSessionAvailable() &&
+                    CastContext.getSharedInstance().getSessionManager() != null &&
+                    CastContext.getSharedInstance().getSessionManager().getCurrentCastSession()
+                        != null
+                ) {
+                    CastSession castSession = CastContext.getSharedInstance().getSessionManager().getCurrentCastSession();
+                    try {
+                        castSession.setMessageReceivedCallbacks(AMPAS_CUSTOM_CHANNEL, (castDevice, namespace, message) -> {
+                        Log.d("CAST",
+                            "received message in namespace '" + namespace + "': " + message);
+                    });
+                    } catch(IOException e){
+                     Log.e("CAST",
+                          "IOException sending cast message: " + e.getLocalizedMessage());
+                    }
+                }
             }
         });
         eventEmitter.on(GoogleCastEventType.CAST_SESSION_ENDED, new EventListener() {
@@ -111,8 +145,6 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
         });
 
         Source source = findCastableSource(video);
-        
-        GoogleCastComponent googleCastComponent = new GoogleCastComponent(eventEmitter, this);
 
         if(url != null)
         {
@@ -127,6 +159,19 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
             jsonObj.put("licenseKeyHeaders", licenseHeaders);
             MediaInfo mediaInfo = CastMediaUtil.toMediaInfo(video, source, null, jsonObj);
             googleCastComponent.loadMediaInfo(mediaInfo);
+
+            // send available codecs to receiver for 5.1 audio support
+            if (googleCastComponent.isSessionAvailable() &&
+                CastContext.getSharedInstance().getSessionManager() != null &&
+                CastContext.getSharedInstance().getSessionManager().getCurrentCastSession() != null
+            ) {
+                CastSession castSession = CastContext.getSharedInstance().getSessionManager().getCurrentCastSession();
+
+                // send message to the receiver with available codecs
+                JSONObject messageObject = createCodecsMessage(source);
+                castSession.sendMessage(AMPAS_CUSTOM_CHANNEL, messageObject.toString());
+                Log.d("CAST", "sent the following message to the receiver: \n" + messageObject.toString());
+            }
         }
         else
         {
@@ -154,6 +199,29 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
             return savedDashSource;
         }
         return null;
+    }
+
+    public static JSONObject createCodecsMessage(Source source) {
+        JSONObject jsonObject = new JSONObject();
+        String sourceUrl = source.getUrl();
+
+        JSONArray availableCodecs = new JSONArray();
+        for (String key : CODEC_JSON_LIST.keySet()) {
+            if (sourceUrl.contains(key)) {
+                try {
+                    availableCodecs.put(new JSONObject(CODEC_JSON_LIST.get(key)));
+                } catch (Exception e) {
+                    Log.e("CAST", "Exception adding codec to JSONArray: " + e.getLocalizedMessage());
+                }
+            }
+        }
+        JSONObject messageObject = new JSONObject();
+        try {
+            messageObject.put(AUDIO_SPEC_LIST, availableCodecs);
+        } catch (Exception e) {
+            Log.e("CAST", "Exception adding codecs array to mesageObject: " + e.getLocalizedMessage());
+        }
+        return messageObject;
     }
 
     @Override
