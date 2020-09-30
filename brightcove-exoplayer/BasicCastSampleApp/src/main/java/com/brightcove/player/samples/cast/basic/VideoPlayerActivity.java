@@ -193,6 +193,7 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
             for (Source dashSource : video.getSourceCollections().get(DeliveryType.DASH).getSources()) {
                 savedDashSource = dashSource;
                 if (dashSource.getUrl().contains("ac-3_avc1_ec-3_mp4a")) {
+                    // prefer 5.1 dash source
                     return dashSource;
                 }
             }
