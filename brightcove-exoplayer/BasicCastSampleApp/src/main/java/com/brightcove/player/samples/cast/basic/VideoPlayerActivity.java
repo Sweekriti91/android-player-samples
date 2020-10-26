@@ -110,7 +110,10 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
 
     void setUpCast(Video video) throws JSONException {
         EventEmitter eventEmitter = baseVideoView.getEventEmitter();
-        GoogleCastComponent googleCastComponent = new GoogleCastComponent(eventEmitter, this);
+        // use customCastMediaManager to always add licenseHeaders custom data to MediaInfo regardless of whether load
+        // is triggered by our code manually or by the cast SDK when cast is connected mid-playback
+        CustomCastMediaManager customCastMediaManager = new CustomCastMediaManager(this, eventEmitter, videoKey);
+        GoogleCastComponent googleCastComponent = new GoogleCastComponent(eventEmitter, this, customCastMediaManager);
 
         // Initialize the android_cast_plugin.
         String url = videoUrl;
