@@ -7,7 +7,6 @@ import android.view.Menu;
 
 import com.brightcove.cast.GoogleCastComponent;
 import com.brightcove.cast.GoogleCastEventType;
-import com.brightcove.cast.util.CastMediaUtil;
 import com.brightcove.player.appcompat.BrightcovePlayerActivity;
 import com.brightcove.player.drm.BrightcoveMediaDrmCallback;
 import com.brightcove.player.event.Event;
@@ -15,16 +14,12 @@ import com.brightcove.player.event.EventEmitter;
 import com.brightcove.player.event.EventListener;
 import com.brightcove.player.event.EventType;
 import com.brightcove.player.model.DeliveryType;
-import com.brightcove.player.model.Source;
 import com.brightcove.player.model.Video;
 import com.brightcove.player.view.BrightcoveExoPlayerVideoView;
-import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.CastSession;
 
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -40,16 +35,6 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
 
     public static final String PROPS_LONG_DESCRIPTION = "long_description";
     public static final String PROPS_SHORT_DESCRIPTION = "description";
-    public static Map<String, String> CODEC_JSON_LIST;
-    static {
-        CODEC_JSON_LIST = new HashMap<>();
-        CODEC_JSON_LIST.put("mp4a.40.2", "{\"mimeType\": \"audio/mp4\", \"codecs\": \"mp4a.40.2\"}");
-        CODEC_JSON_LIST.put("ac-3", "{\"mimeType\": \"audio/mp4\", \"codecs\": \"ac-3\"}");
-        CODEC_JSON_LIST.put("mp4a.a5", "{\"mimeType\": \"audio/mp4\", \"codecs\": \"mp4a.a5\"}");
-        CODEC_JSON_LIST.put("mp4a.a6", "{\"mimeType\": \"audio/mp4\", \"codecs\": \"mp4a.a6\"}");
-        CODEC_JSON_LIST.put("ec-3", "{\"mimeType\": \"audio/mp4\", \"codecs\": \"ec-3\"}");
-        CODEC_JSON_LIST.put("mhm1.0x0D", "{\"mimeType\": \"audio/mp4\", \"codecs\": \"mhm1.0x0D\"}");
-    }
     public static String AUDIO_SPEC_LIST = "audioSpecList";
     public static String AMPAS_CUSTOM_CHANNEL = "urn:x-cast:bc.cast.theacademy";
 
@@ -115,9 +100,7 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
         CustomCastMediaManager customCastMediaManager = new CustomCastMediaManager(this, eventEmitter, videoKey);
         GoogleCastComponent googleCastComponent = new GoogleCastComponent(eventEmitter, this, customCastMediaManager);
 
-        // Initialize the android_cast_plugin.
-        String url = videoUrl;
-
+        // listen for cast started and ended events
         eventEmitter.on(GoogleCastEventType.CAST_SESSION_STARTED, new EventListener() {
             @Override
             public void processEvent(Event event) {
@@ -146,86 +129,6 @@ public class VideoPlayerActivity extends BrightcovePlayerActivity {
                 // Connection Ended
             }
         });
-
-        Source source = findCastableSource(video);
-
-        if(url != null)
-        {
-            JSONObject jsonObj = new JSONObject();
-
-            // add licenseUrl
-            jsonObj.put("licenseUrl", "https://wv-keyos.licensekeyserver.com/");
-
-            JSONObject licenseHeaders = new JSONObject();
-            licenseHeaders.put("customdata", videoKey);
-            // add license headers map
-            jsonObj.put("licenseKeyHeaders", licenseHeaders);
-            MediaInfo mediaInfo = CastMediaUtil.toMediaInfo(video, source, null, jsonObj);
-            googleCastComponent.loadMediaInfo(mediaInfo);
-
-            // send available codecs to receiver for 5.1 audio support
-            if (googleCastComponent.isSessionAvailable() &&
-                CastContext.getSharedInstance().getSessionManager() != null &&
-                CastContext.getSharedInstance().getSessionManager().getCurrentCastSession() != null
-            ) {
-                CastSession castSession = CastContext.getSharedInstance().getSessionManager().getCurrentCastSession();
-
-                // send message to the receiver with available codecs
-                JSONObject messageObject = createCodecsMessage(source);
-                castSession.sendMessage(AMPAS_CUSTOM_CHANNEL, messageObject.toString());
-                Log.d("CAST", "sent the following message to the receiver: \n" + messageObject.toString());
-            }
-        }
-        else
-        {
-            MediaInfo mediaInfo = CastMediaUtil.toMediaInfo(video, source, null, null);
-            googleCastComponent.loadMediaInfo(mediaInfo);
-        }
-
-        //You can check if there is a session available
-        googleCastComponent.isSessionAvailable();
-    }
-
-
-    public static Source findCastableSource(Video video) {
-        Source savedDashSource = null;
-
-        if (!video.getSourceCollections().isEmpty()
-                && video.getSourceCollections().containsKey(DeliveryType.DASH)
-                && video.getSourceCollections().get(DeliveryType.DASH).getSources() != null) {
-            for (Source dashSource : video.getSourceCollections().get(DeliveryType.DASH).getSources()) {
-                savedDashSource = dashSource;
-                if (dashSource.getUrl().contains("ac-3_avc1_ec-3_mp4a")) {
-                    // prefer 5.1 dash source
-                    return dashSource;
-                }
-            }
-            return savedDashSource;
-        }
-        return null;
-    }
-
-    public static JSONObject createCodecsMessage(Source source) {
-        JSONObject jsonObject = new JSONObject();
-        String sourceUrl = source.getUrl();
-
-        JSONArray availableCodecs = new JSONArray();
-        for (String key : CODEC_JSON_LIST.keySet()) {
-            if (sourceUrl.contains(key)) {
-                try {
-                    availableCodecs.put(new JSONObject(CODEC_JSON_LIST.get(key)));
-                } catch (Exception e) {
-                    Log.e("CAST", "Exception adding codec to JSONArray: " + e.getLocalizedMessage());
-                }
-            }
-        }
-        JSONObject messageObject = new JSONObject();
-        try {
-            messageObject.put(AUDIO_SPEC_LIST, availableCodecs);
-        } catch (Exception e) {
-            Log.e("CAST", "Exception adding codecs array to mesageObject: " + e.getLocalizedMessage());
-        }
-        return messageObject;
     }
 
     @Override
